@@ -1,5 +1,10 @@
 /**
-* Copyright 2013 IBM Corp.
+*
+* Copyright 2014 Darrell Taylor.
+* Original Copyright 2014 Jonathan Leach.
+*
+* Originally forked from : https://github.com/leachj/nodered-zwave
+* which is where all the heavy lifting was done, I just tweaked it.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -39,11 +44,16 @@ function ZwaveOutNode(n) {
 			
 			var value = msg.payload;
 			var node = msg.nodeId||this.nodeId
+
 			this.log('[zwave] setting '+node+' to '+value);
+
 			if(value == "true"){
 				zwave.switchOn(node);
 			} else if(value == "false"){
 				zwave.switchOff(node)
+			} else if(msg.topic=='settings'){
+				var parts = value.split('|');
+				zwave.setValue(node,parts[0],parts[1],parts[2]);
 			} else {
 				zwave.setLevel(node,value);
 			}
@@ -201,7 +211,7 @@ function ZwaveInNode(n) {
 				var values = nodes[nodeid]['classes'][comclass];
 				console.log('node%d: class %d', nodeid, comclass);
 				for (idx in values)
-					console.log('node%d:   %s=%s', nodeid, values[idx]['label'], values[idx]['value']);
+					console.log('node%d:   [%d]%s=%s', nodeid, idx, values[idx]['label'], values[idx]['value']);
 			}
 
 			node.send({
